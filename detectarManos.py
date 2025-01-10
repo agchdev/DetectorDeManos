@@ -18,6 +18,9 @@ manos = mpManos.Hands(
 mpDibujar = mp.solutions.drawing_utils  # Para dibujar las conexiones de la mano
 pantalla_ancho, pantalla_alto = pyautogui.size()  # Obtener las dimensiones de la pantalla
 
+# Variable para rastrear el estado del clic
+clic_sostenido = False
+
 while True:
     success, img = dispositivoCaptura.read()  # Captura la imagen de la cámara
     if not success:
@@ -57,16 +60,19 @@ while True:
             distanciaEntreDedos = math.hypot(x8 - x4, y8 - y4)
             cv2.putText(img, f"Distancia: {int(distanciaEntreDedos)}", (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
 
-            # Simular clic izquierdo si la distancia es menor a un umbral
-            if distanciaEntreDedos < 30:
-                pyautogui.click() # Simular un clic
-                cv2.putText(img, "Clic!", (mediaX, mediaY - 20), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2) # Mostrar el texto "Clic!"
+               # Controlar el clic sostenido
+            if distanciaEntreDedos < 30:  # Umbral para activar el clic sostenido
+                if not clic_sostenido:  # Si el clic aún no está sostenido
+                    pyautogui.mouseDown()
+                    clic_sostenido = True
+                    cv2.putText(img, "Clic Sostenido", (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+            else:  # Si los dedos se separan, liberar el clic
+                if clic_sostenido:
+                    pyautogui.mouseUp()
+                    clic_sostenido = False
             
-            if distanciaEntreDedos < 100:  # Si la distancia entre los dedos es menor a 100 pixeles
-                #dibujar texto en la imagen
-                cv2.putText(img, "hoola Maria", (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
             #dibujar texto con el dedo pulgar
-            cv2.putText(img, f"Distancia entre dedos: {distanciaEntreDedos}", (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+            # cv2.putText(img, f"Distancia entre dedos: {distanciaEntreDedos}", (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
             #dibujar rastro de linea del meñique
             cv2.line(img, (x4, y4), (mediaX, mediaY), (0, 0, 255), 3)
             #dibujar rastro de linea del pulgar
@@ -75,7 +81,7 @@ while True:
 
     # Presionar 'q' para salir
     if cv2.waitKey(1) & 0xFF == ord('q') or salir:
-        breakq
+        break
 
 # Liberar recursos
 dispositivoCaptura.release()
