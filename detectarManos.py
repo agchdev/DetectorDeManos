@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import math
+import pyautogui  # Biblioteca para controlar el ratón
 
 # Inicializar la cámara (0 para cámara integrada)
 dispositivoCaptura = cv2.VideoCapture(0)
@@ -15,13 +16,16 @@ manos = mpManos.Hands(
 )
 
 mpDibujar = mp.solutions.drawing_utils  # Para dibujar las conexiones de la mano
+pantalla_ancho, pantalla_alto = pyautogui.size()  # Obtener las dimensiones de la pantalla
 
 while True:
     success, img = dispositivoCaptura.read()  # Captura la imagen de la cámara
     if not success:
         print("No se pudo acceder a la cámara.")
-        break
-    salir = False
+        breakq
+
+    img = cv2.flip(img, 1)  # Voltear la imagen horizontalmente (corregir efecto espejo)
+    salir = False # Variable para salir del bucle
     imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convertir la imagen a RGB
     resultado = manos.process(imgRGB)  # Procesar la imagen con MediaPipe
 
@@ -36,20 +40,31 @@ while True:
                 if id == 4:  # Pulgar (ID 4)
                     cv2.circle(img, (cx, cy), 10, (255, 255, 0), cv2.FILLED)
                     x4, y4 = cx, cy # Guardar las coordenadas del pulgar
-                if id == 20:  # Punto 24 (ejemplo)
+                if id == 8:  # Punto 24 (ejemplo)
                     cv2.circle(img, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
-                    x20, y20 = cx, cy  # Guardar las coordenadas del punto 24
-            mediaX = (x4 + x20) // 2 # Calcular la media de las coordenadas X
-            mediaY = (y4 + y20) // 2 # Calcular la media de las coordenadas Y
+                    x8, y8 = cx, cy  # Guardar las coordenadas del punto 24
+            # Punto medio entre pulgar e índice
+            mediaX = (x4 + x8) // 2
+            mediaY = (y4 + y8) // 2
+            cv2.circle(img, (mediaX, mediaY), 10, (255, 255, 0), cv2.FILLED)
 
-            distanciaEntreDedos = math.hypot(x20 - x4, y20 - y4) # Calcular la distancia entre los dedos
-            cv2.line(img, (x4, y4), (x20, y20), (0, 255, 0), 3) # Dibujar la linea entre los dedos
+            # Mover el ratón según la posición del punto medio
+            pantallaX = int(mediaX * pantalla_ancho / ancho)
+            pantallaY = int(mediaY * pantalla_alto / alto)
+            pyautogui.moveTo(pantallaX, pantallaY)
 
-            if distanciaEntreDedos < 50:  # Si la distancia entre los dedos es menor a 50 pixeles
-                salir = True
+            # Calcular la distancia entre el pulgar y el índice
+            distanciaEntreDedos = math.hypot(x8 - x4, y8 - y4)
+            cv2.putText(img, f"Distancia: {int(distanciaEntreDedos)}", (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+
+            # Simular clic izquierdo si la distancia es menor a un umbral
+            if distanciaEntreDedos < 30:
+                pyautogui.click() # Simular un clic
+                cv2.putText(img, "Clic!", (mediaX, mediaY - 20), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2) # Mostrar el texto "Clic!"
+            
             if distanciaEntreDedos < 100:  # Si la distancia entre los dedos es menor a 100 pixeles
                 #dibujar texto en la imagen
-                cv2.putText(img, "Abriendo la puerta", (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+                cv2.putText(img, "hoola Maria", (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
             #dibujar texto con el dedo pulgar
             cv2.putText(img, f"Distancia entre dedos: {distanciaEntreDedos}", (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
             #dibujar rastro de linea del meñique
@@ -60,7 +75,7 @@ while True:
 
     # Presionar 'q' para salir
     if cv2.waitKey(1) & 0xFF == ord('q') or salir:
-        break
+        breakq
 
 # Liberar recursos
 dispositivoCaptura.release()
