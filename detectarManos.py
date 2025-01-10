@@ -50,6 +50,12 @@ while True:
             if distanciaEntreDedos < 100:  # Si la distancia entre los dedos es menor a 100 pixeles
                 #dibujar texto en la imagen
                 cv2.putText(img, "Abriendo la puerta", (50, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+            #dibujar texto con el dedo pulgar
+            cv2.putText(img, f"Distancia entre dedos: {distanciaEntreDedos}", (50, 100), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+            #dibujar rastro de linea del meñique
+            cv2.line(img, (x4, y4), (mediaX, mediaY), (0, 0, 255), 3)
+            #dibujar rastro de linea del pulgar
+            cv2.line(img, (mediaX, mediaY), (mediaX, mediaY), (0, 0, 255), 3)
     cv2.imshow("Image", img)  # Mostrar la imagen en una ventana
 
     # Presionar 'q' para salir
