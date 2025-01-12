@@ -1,5 +1,5 @@
-import cv2
-import mediapipe as mp
+import cv2 # Se encarga de la captura de la imagen
+import mediapipe as mp #Se encarga del reconocimiento de la mano
 import math
 import pyautogui  # Biblioteca para controlar el ratón
 
